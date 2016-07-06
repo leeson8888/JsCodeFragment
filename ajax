@@ -1,0 +1,95 @@
+//创建xmlhttprequest对象  
+var MyXMLHttpRequest = function(){  
+    var xmlHttpRequest;  
+      
+    if(window.XMLHttpRequest){//非IE，w3c标准下  
+        xmlHttpRequest = new XMLHttpRequest();  
+        if(xmlHttpRequest.overrideMimeType){  
+           xmlHttpRequest.overrideMimeType("text/xml");   
+        }  
+    }else if(window.ActiveXObject){//IE情况下  
+        var activeXName = ["MSXML2.XMLHTTP","Microsoft.XMLHTTP"]  
+        for(var i = 0; activeXName.length > i ; i++){  
+            try{  
+                xmlHttpRequest = new ActiveXObject(activeXName[i]);  
+                break;  
+            }catch(e){  
+                  
+            }        
+        }  
+    }  
+    if(xmlHttpRequest == null || xmlHttpRequest ==undefined){  
+        alert("xmlHttpRequest对象创建失败！");  
+   }else{  
+       this.xmlhttp = xmlHttpRequest;  
+   }  
+      
+}  
+/** 
+ * 用户发送请求的方法 
+ * @param {type} method : must be "POST" || "GET" 
+ * @param {type} url : "null"and "undefined" is not allow 
+ * @param {type} data :  
+ * @param {type} callback : 
+ * @param {type} failback : 
+ * @returns {undefined}  
+ *  
+ */  
+MyXMLHttpRequest.prototype.send = function(method,url,data,callback,failback){  
+    
+    if(this.xmlhttp != null && this.xmlhttp != undefined){  
+       //处理请求的方法   
+       method = method.toUpperCase();  
+       if(method != "POST" && method != "GET"){  
+           alert("请求的方法，只能是POST或者GET");  
+       }  
+       //处理请求的URL地址  
+       if(url == null || url == undefined){  
+           alert("必须要有URL地址，否则找不到资源");  
+       }  
+       //定义临时变量替代 this.xmlhttp  
+       var tempXMLHttp = this.xmlhttp;  
+       //注册回调方法  
+       this.xmlhttp.onreadystatechange = function(){  
+            
+           if(tempXMLHttp.readyState == 4){    
+               if(tempXMLHttp.status == 200){  
+                   var responseText = tempXMLHttp.responseText;  
+                   var responseXML = tempXMLHttp.responseXML;  
+                   //服务器数据正确返回时，其回调函数是否存在，若存在则用该回调方法处理服务器返回的数据  
+                   if(callback == null || callback == undefined){  
+                       alert("没有设置处理数据正确返回的方法");  
+                       alert("返回的数据：" + responseText);  
+                   }else{  
+                       callback(responseText,responseXML);  
+                   }  
+                     
+               }else{  
+                   //服务器数据返回失败时，其回调函数是否存在，若存在则用该回调方法处理服务器返回的错误数据  
+                   if(failback == null || failback == undefined){  
+                       alert("没有设置处理数据返回失败的方法");  
+                       alert("http的响应码：" + tempXMLHttp.status + "相应码的文本信息：" + tempXMLHttp.statusText);  
+                   }else{  
+                       failback(tempXMLHttp.status,tempXMLHttp.statusText);  
+                   }  
+               }  
+           }  
+       }  
+  
+       this.xmlhttp.open(method,url,true)  
+         
+       //当请求方法为POST的时候，设置请求头  
+       if(method == "POST"){  
+           this.xmlhttp.setRequestHeader("Content-Type","application/x-www-form-urlencoded");  
+       }  
+         
+       this.xmlhttp.send(data);  
+    }else{  
+        alert("XMLHttpRequest对象创建失败！");  
+    }  
+          
+}  
+//在原型上注册一个abort函数来停止和服务器的交互  
+MyXMLHttpRequest.prototype.abort= function(){  
+    this.xmlhttp.abort();  
+}
